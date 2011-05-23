@@ -92,6 +92,6 @@ h3. what it actually does
 h3. requirements
 
 # thinking only about mac users.
-# ~/.profile or ~/.bash_profile exists.
-(.profile will be there when you installed macports, and .bashrc won't work unless you made it work, and if you could make it work, you won't need this)
-
+# modify bash's init files (creates if not exists)
+## ~/.bashrc
+## ~/.profile or ~/.bash_profile
