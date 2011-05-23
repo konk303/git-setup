@@ -1,0 +1,97 @@
+h1. Git Setup script for designers
+
+h2. 日本語
+
+h3. これは何？
+
+# gitコマンドのショートカットとおすすめの設定をセットする
+# コマンドプロンプトにブランチ名と現在の状態を表示
+
+h3. インストール
+<pre>
+$ git clone https://konk303@github.com/konk303/git-setup.git
+$ git-setup/setup.rb
+</pre>
+
+h3. 何をするか
+
+# gitコマンドのショートカットを作成
+## co => checkout
+## ci => "commit"
+## st => "status"
+## br => "branch"
+## f => "fetch"
+## m => "merge"
+## rb => "rebase"
+## rbo => "rebase origin/master"
+## cp => "cherry-pick"
+## s => "submodule"
+## su => "submodule update --init"
+# 追加の設定
+## diff等を色付きに
+"color.ui" => "auto"
+## push時に、現在のブランチのみをプッシュ
+"push.default" => "upstream"
+## pull時に、マージコミットを作らない
+"branch.autosetuprebase" => "always"
+*既存のブランチには適用されないので、git cloneのやり直しが必要。時間のある時に*
+# プロンプトに、現在のブランチ名とステータスを（色で）表示
+## green => 正常
+## yellow => 追加してないファイルが存在する
+## red => 作業中。要コミット
+
+h3. 前提
+
+# mac用
+# bashを使ってる（デフォルトの設定をいじってなければ使ってるはず）
+# ~/.profile か ~/.bash_profile がホームディレクトリにある
+（macportsが入ってれば前者があるはず）
+
+---
+
+h2. english
+
+h3. what?
+
+# add several git global configs and aliases
+# show branch with status in color on your bash prompt
+
+h3. install
+<pre>
+$ git clone https://konk303@github.com/konk303/git-setup.git
+$ git-setup/setup.rb
+</pre>
+
+h3. what it actually does
+
+# create some git aliases
+## co => checkout
+## ci => "commit"
+## st => "status"
+## br => "branch"
+## f => "fetch"
+## m => "merge"
+## rb => "rebase"
+## rbo => "rebase origin/master"
+## cp => "cherry-pick"
+## s => "submodule"
+## su => "submodule update --init"
+# some additional global configs
+## set colorful output
+"color.ui" => "auto"
+## make push only pushes current branch"
+"push.default" => "upstream"
+## make pull do the rebase instead of merge
+"branch.autosetuprebase" => "always"
+*needs cloning again to take effect*
+# show branch name on bash prompt
+## green => nothing to commit
+## yellow => untracked file exists
+## red => dirty
+
+h3. requirements
+
+# thinking only about mac users.
+# ~/.profile or ~/.bash_profile exists.
+(.profile will be there when you installed macports, and .bashrc won't work unless you made it work, and if you could make it work, you won't need this)
+
