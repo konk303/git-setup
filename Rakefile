@@ -46,6 +46,9 @@ end
 namespace :bash_prompt do
   init_src_files = FileList[File.join(CURRENT_DIR, "init_script_additions", "*")]
   init_target_files = init_src_files.map {|f| File.join(HOME_DIR, ".#{f.pathmap("%f")}")}
+  if File.exists?(bash_profile = File.join(HOME_DIR, ".bash_profile"))
+    init_target_files[init_target_files.index {|itf| itf == File.join(HOME_DIR, ".profile") }] = bash_profile
+  end
 
   sh_src_dir = File.join(CURRENT_DIR, "bash.d")
   sh_target_dir = File.join(HOME_DIR, ".bash.d")
