@@ -17,7 +17,7 @@ global:
       desc: "setting colorful output"
   push:
     default: #http://longair.net/blog/2011/02/27/an-asymmetry-between-git-pull-and-git-push/
-      value: "tracking" #"upstream" from git 1.7.4.2
+      value: <%= (GIT_VERSION >= "1.7.4.2") ? "upstream" : "tracking" %> #"upstream" from git 1.7.4.2
       desc: "make push only pushes current branch"
   branch:
     autosetuprebase:

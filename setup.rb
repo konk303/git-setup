@@ -1,9 +1,11 @@
 #!/usr/bin/env ruby
 require 'fileutils'
 require 'yaml'
+require 'erb'
 
 APPENDING_TO_PROFILE_START = "# start: added by git_setup/setup.rb\n"
 APPENDING_TO_PROFILE_END = "# end: added by git_setup/setup.rb\n"
+GIT_VERSION = `git --version`.split(" ")[2]
 
 def set_git_global_config(key, value, description = nil)
   command = "git config --global #{key} '#{value}'"
@@ -48,7 +50,8 @@ current_dir = File.expand_path(File.dirname(__FILE__))
 home_dir = File.expand_path("~")
 
 puts "setting global configs"
-git_global_configs = YAML.load_file(File.join(current_dir, "git_configs.yaml"))["global"]
+config_yaml = ERB.new(File.read(File.join(current_dir, "git_configs.yaml"))).result
+git_global_configs = YAML.load(config_yaml)["global"]
 git_global_configs.each do |category, configs|
   configs.each do |k, v|
     key = "#{category}.#{k}"
