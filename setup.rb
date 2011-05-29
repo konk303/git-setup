@@ -66,29 +66,13 @@ puts "adding git status to prompt"
 puts "  - rewriting bashrc"
 bashrc = File.join(File.expand_path("~"), ".bashrc")
 source_file = File.expand_path(__FILE__).sub(File.basename(__FILE__), "bash_prompt_with_git")
-append_to_bashrc = <<-EOS
-# if running bash
-if [ -n \"$BASH_VERSION\" ]; then
-    # include #{source_file}
-    if [ -f '#{source_file}' ]; then
-        . '#{source_file}'
-    fi
-fi
-EOS
+append_to_bashrc = ERB.new(File.read(File.join(current_dir, "bashrc_addition"))).result
 rewrite_config_file(bashrc, append_to_bashrc)
 
 puts "  - rewriting profile"
 profile = File.join(File.expand_path("~"), ".bash_profile")
 profile = File.join(File.dirname(profile), ".profile") unless File.exist?(profile)
-append_to_profile = <<-EOS
-# if running bash
-if [ -n "$BASH_VERSION" ]; then
-    # include .bashrc if it exists
-    if [ -f "$HOME/.bashrc" ]; then
-        . "$HOME/.bashrc"
-    fi
-fi
-EOS
+append_to_profile = ERB.new(File.read(File.join(current_dir, "profile_addition"))).result
 rewrite_config_file(profile, append_to_profile)
 
 puts "finished"
