@@ -1,0 +1,25 @@
+global:
+  alias:
+    co: "checkout"
+    ci: "commit"
+    st: "status"
+    br: "branch"
+    f: "fetch"
+    m: "merge"
+    rb: "rebase"
+    cp: "cherry-pick"
+    s: "submodule"
+    su: "submodule update --init"
+    rbo: "rebase origin/master"
+  color:
+    ui:
+      value: "auto"
+      desc: "setting colorful output"
+  push:
+    default: #http://longair.net/blog/2011/02/27/an-asymmetry-between-git-pull-and-git-push/
+      value: "tracking" #"upstream" from git 1.7.4.2
+      desc: "make push only pushes current branch"
+  branch:
+    autosetuprebase:
+      value: "always"
+      desc: "make pull do the rebase instead of merge"

@@ -1,29 +1,14 @@
 #!/usr/bin/env ruby
 require 'fileutils'
+require 'yaml'
 
-ALIASES = {
-  :co => "checkout",
-  :ci => "commit",
-  :st => "status",
-  :br => "branch",
-  :f => "fetch",
-  :m => "merge",
-  :rb => "rebase",
-  :rbo => "rebase origin/master",
-  :cp => "cherry-pick",
-  :s => "submodule",
-  :su => "submodule update --init"
-}
-GLOBALS = [
-  ["setting colorful output", "color.ui" => "auto"],
-  ["make push only pushes current branch", "push.default" => "upstream"],
-  ["make pull do the rebase instead of merge", "branch.autosetuprebase" => "always"]
-]
 APPENDING_TO_PROFILE_START = "# start: added by git_setup/setup.rb\n"
 APPENDING_TO_PROFILE_END = "# end: added by git_setup/setup.rb\n"
 
-def set_git_global_config(key, value)
+def set_git_global_config(key, value, description = nil)
   command = "git config --global #{key} '#{value}'"
+  description ||= command
+  puts "  - #{description}"
   puts "    - #{command}"
   system command
 end
@@ -59,14 +44,18 @@ def rewrite_config_file(target, append_string)
 end
 
 
-puts "setting global aliases"
-ALIASES.each { |k, v| set_git_global_config("alias.#{k.to_s}", v) }
+current_dir = File.expand_path(File.dirname(__FILE__))
+home_dir = File.expand_path("~")
 
-puts "setting other globals"
-GLOBALS.each do |g|
-  commands = g.last.is_a?(::Hash) ? g.pop : {}
-  puts "  - #{g.first}"
-  commands.each  { |k, v| set_git_global_config(k ,v) }
+puts "setting global configs"
+git_global_configs = YAML.load_file(File.join(current_dir, "git_configs.yaml"))["global"]
+git_global_configs.each do |category, configs|
+  configs.each do |k, v|
+    key = "#{category}.#{k}"
+    value = v.is_a?(String) ? v : v["value"]
+    description = v.is_a?(String) ? "#{key} -> #{value}" : v["desc"]
+    set_git_global_config(key, value, description)
+  end
 end
 
 puts "adding git status to prompt"
