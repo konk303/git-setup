@@ -10,7 +10,7 @@ h3. これは何？
 h3. インストール
 <pre>
 $ git clone https://konk303@github.com/konk303/git-setup.git
-$ git-setup/setup.rb
+$ rake
 </pre>
 
 h3. 何をするか
@@ -59,7 +59,7 @@ h3. what?
 h3. install
 <pre>
 $ git clone https://konk303@github.com/konk303/git-setup.git
-$ git-setup/setup.rb
+$ rake
 </pre>
 
 h3. what it actually does
