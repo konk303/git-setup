@@ -56,26 +56,30 @@ namespace :bash_prompt do
   sh_target_files = sh_src_files.sub(sh_src_dir, sh_target_dir)
 
   desc "show git statuses on bash prompt"
-  task :install => [:back_up, :update] do
+  task :install => sh_target_files | init_target_files.map {|file| :"#{file}:install"} do
     sh "source ~/.bashrc"
   end
 
-  desc "backup current init scripts"
-  task :back_up do
-    init_target_files.each do |f|
-      if File.exists?(f)
-        backup_file = "#{f}.saved.#{Time.now.strftime("%Y-%m-%d_%H:%M:%S")}"
-        puts "backing up #{f} to #{backup_file}"
-        copy_file(f, backup_file, true)
-      end
-    end
-  end
+  init_target_files.each_with_index do |script, i|
+    namespace script do
+      desc "install #{script}"
+      task :install => [:back_up, :update]
 
-  desc "modify init scripts"
-  task :update => sh_target_files do
-    init_target_files.each_with_index do |file, i|
-      append_to_script = ERB.new(File.read(init_src_files[i])).result(binding)
-      rewrite_config_file(file, append_to_script)
+      desc "backup #{script}"
+      task :back_up do
+        if File.exists?(script)
+          backup_file = "#{script}.saved.#{Time.now.strftime("%Y-%m-%d_%H:%M:%S")}"
+          puts "backing up #{script} to #{backup_file}"
+          copy_file(script, backup_file, true)
+        end
+      end
+
+      desc "modify #{script}"
+      task :update do
+        puts "update #{script}"
+        append_to_script = ERB.new(File.read(init_src_files[i])).result(binding)
+        rewrite_config_file(script, append_to_script)
+      end
     end
   end
 
@@ -87,8 +91,6 @@ namespace :bash_prompt do
       install t.prerequisites[1], t.name
     end
   end
-
-
 end
 
 def rewrite_config_file(target, append_string)
