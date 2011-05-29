@@ -56,7 +56,9 @@ namespace :bash_prompt do
   sh_target_files = sh_src_files.sub(sh_src_dir, sh_target_dir)
 
   desc "show git statuses on bash prompt"
-  task :install => [:back_up, :update]
+  task :install => [:back_up, :update] do
+    sh "source ~/.bashrc"
+  end
 
   desc "backup current init scripts"
   task :back_up do
