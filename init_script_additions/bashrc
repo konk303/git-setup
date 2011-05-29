@@ -1,0 +1,8 @@
+# if running bash
+if [ -n "$BASH_VERSION" ]; then
+   <% sh_target_files.each do |f| %>
+    if [ -f "<%= f.sub(HOME_DIR, "$HOME") %>" ]; then
+        . "<%= f.sub(HOME_DIR, "$HOME") %>"
+    fi
+    <% end %>
+fi

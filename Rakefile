@@ -2,7 +2,6 @@
 require 'yaml'
 require 'erb'
 
-GIT_VERSION = `git --version`.split(" ")[2]
 CURRENT_DIR = File.expand_path(File.dirname(__FILE__))
 HOME_DIR = File.expand_path("~")
 
@@ -38,40 +37,52 @@ namespace :git_configs do
 
   desc "load configs from yaml"
   task :load_config do
-    config_yaml = ERB.new(File.read(File.join(CURRENT_DIR, "git_configs.yaml"))).result
+    git_version = `git --version`.split(" ")[2]
+    config_yaml = ERB.new(File.read(File.join(CURRENT_DIR, "git_configs.yaml"))).result(binding)
     git_global_configs = YAML.load(config_yaml)["global"]
   end
 end
 
 namespace :bash_prompt do
-  sh_file_dir = File.join(HOME_DIR, ".bash.d")
-  git_sh_file =  File.join(sh_file_dir, "bash_prompt_with_git")
+  init_src_files = FileList[File.join(CURRENT_DIR, "init_script_additions", "*")]
+  init_target_files = init_src_files.map {|f| File.join(HOME_DIR, ".#{f.pathmap("%f")}")}
+
+  sh_src_dir = File.join(CURRENT_DIR, "bash.d")
+  sh_target_dir = File.join(HOME_DIR, ".bash.d")
+  sh_src_files = FileList[File.join(sh_src_dir, "**/*")]
+  sh_target_files = sh_src_files.sub(sh_src_dir, sh_target_dir)
 
   desc "show git statuses on bash prompt"
-  task :install => [:update_bashrc, :update_profile]
+  task :install => [:back_up, :update]
 
-  desc "modify bashrc to load new bash script"
-  task :update_bashrc => [git_sh_file] do |t|
-    puts "rewriting bashrc"
-    bashrc = File.join(HOME_DIR, ".bashrc")
-    append_to_bashrc = ERB.new(File.read(File.join(CURRENT_DIR, "bashrc_addition"))).result(binding)
-    rewrite_config_file(bashrc, append_to_bashrc)
+  desc "backup current init scripts"
+  task :back_up do
+    init_target_files.each do |f|
+      if File.exists?(f)
+        backup_file = "#{f}.saved.#{Time.now.strftime("%Y-%m-%d_%H:%M:%S")}"
+        puts "backing up #{f} to #{backup_file}"
+        copy_file(f, backup_file, true)
+      end
+    end
   end
 
-  desc "modify profile/bash_profile to load bashrc"
-  task :update_profile do
-    profile = File.join(HOME_DIR, ".bash_profile")
-    profile = File.join(HOME_DIR, ".profile") unless File.exist?(profile)
-    append_to_profile = ERB.new(File.read(File.join(CURRENT_DIR, "profile_addition"))).result(binding)
-    rewrite_config_file(profile, append_to_profile)
+  desc "modify init scripts"
+  task :update => sh_target_files do
+    init_target_files.each_with_index do |file, i|
+      append_to_script = ERB.new(File.read(init_src_files[i])).result(binding)
+      rewrite_config_file(file, append_to_script)
+    end
   end
 
-  desc "copy sh file to home"
-  file git_sh_file => [sh_file_dir, File.join(CURRENT_DIR, "bash_prompt_with_git")] do |t|
-    install t.prerequisites[1], t.name
+  directory sh_target_dir
+
+  sh_src_files.each_with_index do |src, i|
+    desc "copy shell file to home dir"
+    file sh_target_files[i] => [sh_target_dir, src] do |t|
+      install t.prerequisites[1], t.name
+    end
   end
 
-  directory sh_file_dir
 
 end
 
@@ -81,13 +92,6 @@ def rewrite_config_file(target, append_string)
   puts "  - reading current #{target}"
   contents = []
   File.open(target) {|f| contents = f.readlines} if File.exists?(target)
-
-  if File.exists?(target)
-    backup_file = target + ".saved.#{Time.now.strftime("%Y-%m-%d_%H:%M:%S")}"
-    puts "    - backing up #{target} to #{backup_file}"
-    FileUtils.copy_file(target, backup_file, true)
-  end
-
   if added_starts = contents.index(APPENDING_TO_PROFILE_START) and
       added_ends = contents.index(APPENDING_TO_PROFILE_END) and
       added_starts < added_ends
@@ -95,10 +99,8 @@ def rewrite_config_file(target, append_string)
     contents[added_starts, added_ends] = nil
     2.times {|t| contents[added_starts - t.succ] = nil if  contents[added_starts - t.succ] == "\n"}
   end
-
   puts "    - adding strings"
   contents << appends
-
   puts "    - writing new #{target}"
   File.open(target, "w+") do |f|
     f.write(contents.join(""))

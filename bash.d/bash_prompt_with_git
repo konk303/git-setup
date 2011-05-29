@@ -79,7 +79,7 @@ function _git_branch_status {
 
 case "$TERM" in
     xterm-color)
-  PS1='\[\033[00;36m\]\t \[\033[00;31m\]\u\[\033[00m\]:\[\033[00;34m\]\w$(_git_branch_status)\n\[\033[00m\]\$ ';;
+  PS1='\[\033[00;36m\]\t \[\033[00;31m\]\u\[\033[00m\]:\[\033[00;34m\]\w$(_git_branch_status)\[\033[00m\]\$ ';;
     *)
   PS1='\h:\W \u\$ ';;
 esac
