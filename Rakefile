@@ -2,23 +2,26 @@
 require 'yaml'
 require 'erb'
 
-APPENDING_TO_PROFILE_START = "# start: added by git_setup/setup.rb\n"
-APPENDING_TO_PROFILE_END = "# end: added by git_setup/setup.rb\n"
-
 GIT_VERSION = `git --version`.split(" ")[2]
 CURRENT_DIR = File.expand_path(File.dirname(__FILE__))
 HOME_DIR = File.expand_path("~")
 
+APPENDING_TO_PROFILE_START = "# start: added by git_setup/setup.rb\n"
+APPENDING_TO_PROFILE_END = "# end: added by git_setup/setup.rb\n"
+
 task :default => [:install]
 
 desc "set recommended git global configs, and show git statuses on bash prompt"
-task :install => %w(git_configs:set bash_prompt:install)
+task :install => %w(git_configs:install bash_prompt:install)
 
 namespace :git_configs do
   git_global_configs = nil
 
   desc "set recommended git global configs"
-  task :install => [:load_config] do
+  task :install => [:load_config, :update_git_config]
+
+  desc "send git config commands"
+  task :update_git_config do
     puts "setting global configs"
     git_global_configs.each do |category, configs|
       configs.each do |k, v|
@@ -41,17 +44,41 @@ namespace :git_configs do
 end
 
 namespace :bash_prompt do
-  desc "show git statuses on bash prompt"
-  task :install
+  sh_file_dir = File.join(HOME_DIR, ".bash.d")
+  git_sh_file =  File.join(sh_file_dir, "bash_prompt_with_git")
 
-  desc "hoge"
-  directory File.join(HOME_DIR, ".bash.d")
+  desc "show git statuses on bash prompt"
+  task :install => [:update_bashrc, :update_profile]
+
+  desc "modify bashrc to load new bash script"
+  task :update_bashrc => [git_sh_file] do |t|
+    puts "rewriting bashrc"
+    bashrc = File.join(HOME_DIR, ".bashrc")
+    append_to_bashrc = ERB.new(File.read(File.join(CURRENT_DIR, "bashrc_addition"))).result(binding)
+    rewrite_config_file(bashrc, append_to_bashrc)
+  end
+
+  desc "modify profile/bash_profile to load bashrc"
+  task :update_profile do
+    profile = File.join(HOME_DIR, ".bash_profile")
+    profile = File.join(HOME_DIR, ".profile") unless File.exist?(profile)
+    append_to_profile = ERB.new(File.read(File.join(CURRENT_DIR, "profile_addition"))).result(binding)
+    rewrite_config_file(profile, append_to_profile)
+  end
+
+  desc "copy sh file to home"
+  file git_sh_file => [sh_file_dir, File.join(CURRENT_DIR, "bash_prompt_with_git")] do |t|
+    install t.prerequisites[1], t.name
+  end
+
+  directory sh_file_dir
+
 end
 
 def rewrite_config_file(target, append_string)
   appends = "\n\n#{APPENDING_TO_PROFILE_START}#{append_string}#{APPENDING_TO_PROFILE_END}"
 
-  puts "    - reading current #{target}"
+  puts "  - reading current #{target}"
   contents = []
   File.open(target) {|f| contents = f.readlines} if File.exists?(target)
 
@@ -77,19 +104,3 @@ def rewrite_config_file(target, append_string)
     f.write(contents.join(""))
   end
 end
-
-
-
-# puts "adding git status to prompt"
-
-# puts "  - rewriting bashrc"
-# bashrc = File.join(File.expand_path("~"), ".bashrc")
-# source_file = File.expand_path(__FILE__).sub(File.basename(__FILE__), "bash_prompt_with_git")
-# append_to_bashrc = ERB.new(File.read(File.join(CURRENT_DIR, "bashrc_addition"))).result
-# rewrite_config_file(bashrc, append_to_bashrc)
-
-# puts "  - rewriting profile"
-# profile = File.join(File.expand_path("~"), ".bash_profile")
-# profile = File.join(File.dirname(profile), ".profile") unless File.exist?(profile)
-# append_to_profile = ERB.new(File.read(File.join(CURRENT_DIR, "profile_addition"))).result
-# rewrite_config_file(profile, append_to_profile)

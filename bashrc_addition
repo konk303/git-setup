@@ -1,7 +1,6 @@
 # if running bash
-if [ -n \"$BASH_VERSION\" ]; then
-    # include <%= source_file %>
-    if [ -f '<%= source_file %>' ]; then
-        . '<%= source_file %>'
+if [ -n "$BASH_VERSION" ]; then
+    if [ -f '<%= git_sh_file %>' ]; then
+        . '<%= git_sh_file %>'
     fi
 fi
